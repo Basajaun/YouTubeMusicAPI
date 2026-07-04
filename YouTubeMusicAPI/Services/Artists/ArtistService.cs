@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Xml.Linq;
 using YouTubeMusicAPI.Http;
 using YouTubeMusicAPI.Json;
 using YouTubeMusicAPI.Pagination;
@@ -114,7 +113,7 @@ public sealed class ArtistService
             client.RequestHandler.PostAsync(Endpoints.Browse, payload, ClientType.WebMusic, cancellationToken);
 
         const string methodName = $"{nameof(AlbumService)}-{nameof(GetAlbumsAsync)}";
-        var logger = client.Logger;
+        ILogger? logger = client.Logger;
 
         string response = await MakeRequest();
 
@@ -125,7 +124,7 @@ public sealed class ArtistService
         {
             List<ArtistAlbum> albums = [];
 
-            var contents = isContinuationResponse
+            JElement contents = isContinuationResponse
                 ? root.Get("continuationContents")
                         .Get("sectionListContinuation")
                         .Get("contents")
@@ -158,7 +157,10 @@ public sealed class ArtistService
         }
 
         string? continuationToken = null;
-        var sortingOptions = root.Get("contents")
+
+        string sortingOrderString = sortingOrder.ToString().ToLower();
+
+        JArray sortingOptions = root.Get("contents")
             .Get("singleColumnBrowseResultsRenderer")
             .Get("tabs")
             .GetAt(0)
@@ -173,11 +175,9 @@ public sealed class ArtistService
             .Get("menu")
             .GetMultiSelectMenuOptions();
 
-        var sortingOrderString = sortingOrder.ToString().ToLower();
-
-        foreach (var option in sortingOptions)
+        foreach (JElement option in sortingOptions)
         {
-            var optionText = option.Get("musicMultiSelectMenuItemRenderer")
+            string optionText = option.Get("musicMultiSelectMenuItemRenderer")
                 .Get("title").GetFirstRun().GetText()
                 .AsString()
                 .OrThrow();

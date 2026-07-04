@@ -1,4 +1,5 @@
 ﻿using YouTubeMusicAPI.Pagination;
+using YouTubeMusicAPI.Services.Albums;
 using YouTubeMusicAPI.Services.Artists;
 
 namespace YouTubeMusicAPI.Tests.Services;
@@ -52,21 +53,21 @@ public class ArtistServiceTests
     [Test]
     public async Task Should_get_albums_from_an_artist()
     {
-        var artistAlbums = await client.Artists.GetAlbumsAsync(
+        List<ArtistAlbum> artistAlbums = await client.Artists.GetAlbumsAsync(
             TestData.ArtistBrowseId,
             TestData.ArtistAlbumParams);
 
-        Assert.That(artistAlbums.Albums, Is.Not.Null.Or.Empty);
+        Assert.That(artistAlbums, Is.Not.Null.Or.Empty);
     }
 
     [Test]
     public async Task Should_get_albums_from_an_artist_with_ordering()
     {
-        var artistAlbums = await client.Artists.GetAlbumsAsync(
+        List<ArtistAlbum> artistAlbums = await client.Artists.GetAlbumsAsync(
             TestData.ArtistBrowseId,
             TestData.ArtistAlbumParams,
             AlbumSortingOrder.Popularity);
 
-        Assert.That(artistAlbums.Albums, Is.Not.Null.Or.Empty);
+        Assert.That(artistAlbums, Is.Not.Null.Or.Empty);
     }
 }
