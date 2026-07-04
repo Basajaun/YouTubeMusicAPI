@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Xml.Linq;
 using YouTubeMusicAPI.Http;
 using YouTubeMusicAPI.Json;
 using YouTubeMusicAPI.Pagination;
@@ -94,7 +95,7 @@ public sealed class ArtistService
     /// <returns>A list of the <see cref="ArtistAlbum"/> containing the information</returns>
     /// <exception cref="HttpRequestException">Occurs when the HTTP request fails.</exception>
     /// <exception cref="OperationCanceledException">Occurs when this task was canceled.</exception>
-    public async Task<ArtistAlbums> GetAlbumsAsync(
+    public async Task<List<ArtistAlbum>> GetAlbumsAsync(
         string browseId,
         string @params,
         AlbumSortingOrder sortingOrder = AlbumSortingOrder.Default,
@@ -120,8 +121,36 @@ public sealed class ArtistService
         logger?.LogInformation($"[{methodName}] Parsing response...");
         using IDisposable _ = response.ParseJson(out JElement root);
 
-        ArtistAlbums ParseAlbums(bool isContinuationResponse = false) 
-            => ArtistAlbums.Parse(root, browseId, @params, sortingOrder, isContinuationResponse);
+        List<ArtistAlbum> ParseAlbums(bool isContinuationResponse = false)
+        {
+            List<ArtistAlbum> albums = [];
+
+            var contents = isContinuationResponse
+                ? root.Get("continuationContents")
+                        .Get("sectionListContinuation")
+                        .Get("contents")
+                : root.Get("contents")
+                        .Get("singleColumnBrowseResultsRenderer")
+                        .Get("tabs")
+                        .GetAt(0)
+                        .Get("tabRenderer")
+                        .Get("content")
+                        .Get("sectionListRenderer")
+                        .Get("contents");
+
+            contents.GetAt(0)
+                .Get("gridRenderer")
+                .Get("items")
+                .AsArray()
+                .Or(JArray.Empty)
+                .ForEach(item =>
+                {
+                    JElement renderer = item.Get("musicTwoRowItemRenderer");
+                    ArtistAlbum album = ArtistAlbum.Parse(renderer);
+                    albums.Add(album);
+                });
+            return albums;
+        }
 
         if (sortingOrder is AlbumSortingOrder.Default)
         {
