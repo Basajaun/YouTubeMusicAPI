@@ -85,16 +85,17 @@ public sealed class ArtistService
     }
 
     /// <summary>
-    /// Gets the albums of an artist
+    /// Gets all albums of an artist on YouTube Music.
     /// </summary>
-    /// <param name="browseId">The browse id of artist</param>
-    /// <param name="params">The browse params, will decide whether to return albums or singles EPs</param>
-    /// <param name="sortingOrder">The sorting order of the returned albums</param>
+    /// <param name="browseId">The browse id of the result list</param>
+    /// <param name="params">The browse params of the result list</param>
+    /// <param name="sortingOrder">The sorting order to get the albums in.</param>
     /// <param name="cancellationToken">The token to cancel this task.</param>
     /// <returns>A list of the <see cref="ArtistAlbum"/> containing the information</returns>
+    /// <exception cref="ArgumentException">Occurs when the <c>browseId</c> or <c>params</c> is <see langword="null"/> or empty or they are not a valid browse ID or params.</exception>
     /// <exception cref="HttpRequestException">Occurs when the HTTP request fails.</exception>
     /// <exception cref="OperationCanceledException">Occurs when this task was canceled.</exception>
-    public async Task<List<ArtistAlbum>> GetAlbumsAsync(
+    public async Task<IReadOnlyList<ArtistAlbum>> GetAlbumsAsync(
         string browseId,
         string @params,
         AlbumSortingOrder sortingOrder = AlbumSortingOrder.Default,
@@ -103,21 +104,17 @@ public sealed class ArtistService
         Ensure.NotNullOrEmpty(browseId, nameof(browseId));
         Ensure.NotNullOrEmpty(@params, nameof(@params));
 
+        // Send request
         KeyValuePair<string, object?>[] payload =
         [
             new("browseId", browseId),
             new("params", @params)
         ];
+        
+        string response = await client.RequestHandler.PostAsync(Endpoints.Browse, payload, ClientType.WebMusic, cancellationToken);
 
-        Task<string> MakeRequest() =>
-            client.RequestHandler.PostAsync(Endpoints.Browse, payload, ClientType.WebMusic, cancellationToken);
-
-        const string methodName = $"{nameof(AlbumService)}-{nameof(GetAlbumsAsync)}";
-        ILogger? logger = client.Logger;
-
-        string response = await MakeRequest();
-
-        logger?.LogInformation($"[{methodName}] Parsing response...");
+        // Parse response
+        client.Logger?.LogInformation("[ArtistService-GetAlbumsAsync] Parsing response...");
         using IDisposable _ = response.ParseJson(out JElement root);
 
         List<ArtistAlbum> ParseAlbums(bool isContinuationResponse = false)
@@ -173,18 +170,25 @@ public sealed class ArtistService
             .GetAt(0)
             .Get("musicSortFilterButtonRenderer")
             .Get("menu")
-            .GetMultiSelectMenuOptions();
+            .Get("musicMultiSelectMenuRenderer")
+            .Get("Options")
+            .Get("options")
+            .AsArray()
+            .Or(JArray.Empty);
 
         foreach (JElement option in sortingOptions)
         {
             string optionText = option.Get("musicMultiSelectMenuItemRenderer")
-                .Get("title").GetFirstRun().GetText()
+                .Get("title")
+                .Get("runs")
+                .GetAt(0)
+                .Get("text")
                 .AsString()
                 .OrThrow();
             if (optionText.Equals(sortingOrderString, StringComparison.InvariantCultureIgnoreCase))
             {
                 continuationToken = option
-                    .GetMultiSelectMenuItem()
+	                .Get("musicMultiSelectMenuItemRenderer")
                     .Get("selectedCommand")
                     .Get("commandExecutorCommand")
                     .Get("commands")
@@ -204,10 +208,20 @@ public sealed class ArtistService
             return ParseAlbums();
         }
 
-        logger?.LogInformation($"[{methodName}] Resending request to get sorted albums...");
-        payload = [new("continuation", continuationToken)];
-        response = await MakeRequest();
+        // Send request
+        client.Logger?.LogInformation("[ArtistService-GetAlbumsAsync] Resending request to get sorted albums...");
+        payload =
+        [
+	        new("continuation", continuationToken)
+        ];
+        
+        // Parse response
+        response = await client.RequestHandler.PostAsync(Endpoints.Browse, payload, ClientType.WebMusic, cancellationToken);
+        
+        client.Logger?.LogInformation("[ArtistService-GetAsync] Parsing response...");
         using IDisposable __ = response.ParseJson(out root);
-        return ParseAlbums(isContinuationResponse: true);
+        
+        IReadOnlyList<ArtistAlbum> albums = ParseAlbums(true);
+        return albums;
     }
 }

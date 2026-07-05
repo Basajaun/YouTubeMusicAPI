@@ -159,7 +159,7 @@ public class ArtistInfo(
                         item => item.Get("musicCarouselShelfRenderer"),
                         item => item.Get("musicDescriptionShelfRenderer"));
 
-                JElement titleNode = shelf
+                JElement title = shelf
                     .Coalesce(
                         item => item
                             .Get("title"),
@@ -171,29 +171,29 @@ public class ArtistInfo(
                             .Get("header"))
                     .Get("runs")
                     .GetAt(0);
+                
+                ResultList<T> ToResultList<T>(
+	                List<T> results)
+                {
+	                JElement browseEndpoint = title 
+		                .Get("navigationEndpoint")
+		                .Get("browseEndpoint");
+	                
+	                return new()
+	                {
+		                Results = results,
+		                BrowseId = browseEndpoint
+			                .Get("browseId")
+			                .AsString(),
+		                Params = browseEndpoint
+			                .Get("params")
+			                .AsString(),
+	                };
+                }
 
-                string? category = titleNode
-                    .Get("text")
-                    .AsString();
-
-                JElement browseEndpointNode =
-                    titleNode.Get("navigationEndpoint")
-                    .Get("browseEndpoint");
-
-                string? browseId2 = browseEndpointNode.Get("browseId")
-                    .AsString();
-
-                string? @params = browseEndpointNode.Get("params")
-                    .AsString();
-
-                ResultList<T> ToResultList<T>(List<T> results) =>
-                    new()
-                    {
-                        Results = results,
-                        BrowseId = browseId2,
-                        Params = @params
-                    };
-
+                string? category = title
+	                .Get("text")
+	                .AsString();
                 switch (category)
                 {
                     case "Top songs":

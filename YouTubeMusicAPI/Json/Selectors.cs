@@ -420,20 +420,4 @@ internal static class Selectors
             .SelectNavigationBrowseId();
         return id is null;
     }
-
-    public static JElement GetRuns(this JElement element) => element.Get("runs");
-           
-    public static JElement GetFirstRun(this JElement element) => element.GetRuns().GetAt(0);
-           
-    public static JElement GetText(this JElement element) => element.Get("text");
-           
-    public static JElement GetMultiSelectMenu(this JElement element) => element.Get("musicMultiSelectMenuRenderer");
-    
-    public static JArray GetMultiSelectMenuOptions(this JElement element) => element.GetMultiSelectMenu()
-        .Get("Options")
-        .Get("options")
-        .AsArray()
-        .Or(JArray.Empty);
-
-    public static JElement GetMultiSelectMenuItem(this JElement element) => element.Get("musicMultiSelectMenuItemRenderer");
 }

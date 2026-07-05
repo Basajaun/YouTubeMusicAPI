@@ -10,10 +10,12 @@ public class ResultList<T>
     /// The browse id
     /// </summary>
     public string? BrowseId { get; init; }
+    
     /// <summary>
     /// The search params
     /// </summary>
     public string? Params { get; init; }
+    
     /// <summary>
     /// The results, could be songs, albums, etc
     /// </summary>

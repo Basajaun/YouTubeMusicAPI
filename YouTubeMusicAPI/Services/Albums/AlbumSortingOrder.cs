@@ -1,7 +1,7 @@
-﻿namespace YouTubeMusicAPI.Services.Artists;
+﻿namespace YouTubeMusicAPI.Services.Albums;
 
 /// <summary>
-/// Represents the sorting order when browsing albums by artist on Youtube Music
+/// Represents the sorting order when getting all albums by artist on YouTube Music
 /// </summary>
 public enum AlbumSortingOrder
 {
@@ -9,14 +9,17 @@ public enum AlbumSortingOrder
     /// Default order
     /// </summary>
     Default,
+    
     /// <summary>
     /// Order by recency
     /// </summary>
     Recency,
+    
     /// <summary>
     /// Order by popularity
     /// </summary>
     Popularity,
+    
     /// <summary>
     /// Alphabetical ordering
     /// </summary>

@@ -51,23 +51,20 @@ public class ArtistServiceTests
     }
 
     [Test]
-    public async Task Should_get_albums_from_an_artist()
+    public void Should_get_albums_from_an_artist()
     {
-        List<ArtistAlbum> artistAlbums = await client.Artists.GetAlbumsAsync(
-            TestData.ArtistBrowseId,
-            TestData.ArtistAlbumParams);
+	    // Act
+	    IReadOnlyList<ArtistAlbum>? result = null;
+	    
+	    Assert.DoesNotThrowAsync(async () =>
+	    {
+		    result = await client.Artists.GetAlbumsAsync(TestData.ArtistAlbumsBrowseId, TestData.ArtistAlbumsParams, TestData.ArtistAlbumsSortingOrder);
+	    });
 
-        Assert.That(artistAlbums, Is.Not.Null.Or.Empty);
-    }
+	    // Assert
+	    Assert.That(result, Is.Not.Null.Or.Empty);
 
-    [Test]
-    public async Task Should_get_albums_from_an_artist_with_ordering()
-    {
-        List<ArtistAlbum> artistAlbums = await client.Artists.GetAlbumsAsync(
-            TestData.ArtistBrowseId,
-            TestData.ArtistAlbumParams,
-            AlbumSortingOrder.Popularity);
+	    TestData.WriteResult(result);
 
-        Assert.That(artistAlbums, Is.Not.Null.Or.Empty);
     }
 }

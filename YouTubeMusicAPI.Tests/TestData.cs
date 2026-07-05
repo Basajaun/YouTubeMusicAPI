@@ -5,6 +5,7 @@ using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using YouTubeMusicAPI.Http.Authentication;
+using YouTubeMusicAPI.Services.Albums;
 using YouTubeMusicAPI.Services.Search;
 using YouTubeSessionGenerator;
 using YouTubeSessionGenerator.Js.Environments;
@@ -135,8 +136,10 @@ internal static class TestData
     public const string AlbumId = "OLAK5uy_kncRLJuxDsO1_nh_xSEkUCEYguyHljIgY";
     public const string AlbumBrowseId = "MPREb_78cZiOmrPmB";
 
-    public const string ArtistBrowseId = "MPADUC2XdaAVUannpujzv32jcouQ";
-    public const string ArtistAlbumParams = "ggMIegYIARoCAQI%3D";
-
+    public const string ArtistBrowseId = "UCGvj8kfUV5Q6lzECIrGY19g";
+    public const string ArtistAlbumsBrowseId = "MPADUC2XdaAVUannpujzv32jcouQ";
+    public const string ArtistAlbumsParams = "ggMIegYIARoCAQI%3D";
+    public const AlbumSortingOrder ArtistAlbumsSortingOrder = AlbumSortingOrder.AlphabeticalOrder;
+    
     public const string ProfileBrowseId = "UCjZL2PeAdLA602k4FLko58g";
 }
