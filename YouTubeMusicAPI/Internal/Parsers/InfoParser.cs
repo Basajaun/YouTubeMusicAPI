@@ -87,7 +87,7 @@ internal static class InfoParser
 
         return new(
             name: innerJsonToken.SelectObject<string>("title.runs[0].text"),
-            id: innerJsonToken.SelectObjectOptional<string>("buttons[1].musicPlayButtonRenderer.playNavigationEndpoint.watchPlaylistEndpoint.playlistId") ?? innerJsonToken.SelectObject<string>("buttons[2].musicPlayButtonRenderer.playNavigationEndpoint.watchPlaylistEndpoint.playlistId"),
+            id: innerJsonToken.SelectObject<string>("$..watchPlaylistEndpoint.playlistId"),
             description: innerJsonToken.SelectObjectOptional<JToken[]>("description.musicDescriptionShelfRenderer.description.runs")?.Aggregate("", (desc, run) => desc + run.SelectObjectOptional<string>("text")),
             artists: innerJsonToken.SelectArtists("straplineTextOne.runs"),
             duration: innerJsonToken.SelectObject<string>("secondSubtitle.runs[2].text").ToTimeSpanLong(),
@@ -115,7 +115,7 @@ internal static class InfoParser
 
         return new(
             name: innerJsonToken.SelectObject<string>("title.runs[0].text"),
-            innerJsonToken.SelectObjectOptional<string>("buttons[1].musicPlayButtonRenderer.playNavigationEndpoint.watchEndpoint.playlistId") ?? innerJsonToken.SelectObject<string>("buttons[2].musicPlayButtonRenderer.playNavigationEndpoint.watchEndpoint.playlistId"),
+            innerJsonToken.SelectObject<string>("$..watchEndpoint.playlistId"),
             description: innerJsonToken.SelectObjectOptional<JToken[]>("description.musicDescriptionShelfRenderer.description.runs")?.Aggregate("", (desc, run) => desc + run.SelectObjectOptional<string>("text")),
             creator: innerJsonToken.SelectNamedEntity("facepile.avatarStackViewModel.text.content", "facepile.avatarStackViewModel.rendererContext.commandContext.onTap.innertubeCommand.browseEndpoint.browseId"),
             viewsInfo: secondRuns.Length - 5 < 0 ? null : innerJsonToken.SelectObjectOptional<string>("secondSubtitle.runs[0].text"),
