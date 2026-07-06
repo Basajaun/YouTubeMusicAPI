@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Globalization;
+using System.Linq;
 using YouTubeMusicAPI.Models.Info;
 using YouTubeMusicAPI.Pagination;
 
@@ -87,7 +88,8 @@ internal static class InfoParser
 
         return new(
             name: innerJsonToken.SelectObject<string>("title.runs[0].text"),
-            id: innerJsonToken.SelectObject<string>("$..watchPlaylistEndpoint.playlistId"),
+            id: innerJsonToken.SelectTokens("$..watchPlaylistEndpoint.playlistId").FirstOrDefault()?.ToObject<string>()
+                ?? throw new ArgumentNullException("$..watchPlaylistEndpoint.playlistId", "Requiered token is null."),
             description: innerJsonToken.SelectObjectOptional<JToken[]>("description.musicDescriptionShelfRenderer.description.runs")?.Aggregate("", (desc, run) => desc + run.SelectObjectOptional<string>("text")),
             artists: innerJsonToken.SelectArtists("straplineTextOne.runs"),
             duration: innerJsonToken.SelectObject<string>("secondSubtitle.runs[2].text").ToTimeSpanLong(),
@@ -115,7 +117,8 @@ internal static class InfoParser
 
         return new(
             name: innerJsonToken.SelectObject<string>("title.runs[0].text"),
-            innerJsonToken.SelectObject<string>("$..watchEndpoint.playlistId"),
+            innerJsonToken.SelectTokens("$..watchEndpoint.playlistId").FirstOrDefault()?.ToObject<string>()
+                ?? throw new ArgumentNullException("$..watchEndpoint.playlistId", "Requiered token is null."),
             description: innerJsonToken.SelectObjectOptional<JToken[]>("description.musicDescriptionShelfRenderer.description.runs")?.Aggregate("", (desc, run) => desc + run.SelectObjectOptional<string>("text")),
             creator: innerJsonToken.SelectNamedEntity("facepile.avatarStackViewModel.text.content", "facepile.avatarStackViewModel.rendererContext.commandContext.onTap.innertubeCommand.browseEndpoint.browseId"),
             viewsInfo: secondRuns.Length - 5 < 0 ? null : innerJsonToken.SelectObjectOptional<string>("secondSubtitle.runs[0].text"),
